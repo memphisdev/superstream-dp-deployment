@@ -32,6 +32,18 @@ Before you begin, ensure you have the following prerequisites installed and conf
 - 1 Superstream syslog adapter
 - 1 telegraf agent for monitoring
 
+# System Requirments 
+
+To ensure optimal performance and stability of the application within a Kubernetes environment, the following system requirements and deployment guidelines must be met:
+
+Hardware Requirements:
+ - `CPU`: Minimum of 4 CPU cores.
+ - `RAM`: Minimum of 4 GB.
+Allocating sufficient resources is crucial to meet or exceed these specifications for the application to function as intended within a Kubernetes pod.
+
+Deployment Restrictions:
+Cloud Instances: The application must be deployed on dedicated or reserved instances within the Kubernetes cluster. It `cannot run on spot instances` due to the potential for unexpected termination, which could disrupt the service.
+
 # Getting started
 Before deploying with helmfile, you need to configure your environment settings and any specific parameters required for your deployment.
 Follow these steps to set up your configuration:
@@ -138,18 +150,18 @@ Run the following command to apply the Helmfile configuration. This will sync yo
 ``` bash
 helmfile -e default apply
 ```
-The `-e default` flag specifies the environment. Adjust this according to your Helmfile's environment configurations.
+The `-e default` flag specifies the environment. You can adjust this according to your Helmfile's environment configurations.
 3. Verify Deployment:
 After applying the Helmfile, you can verify the deployment by listing the Helm releases:
 ```bash
 helm list
 ```
 
-# Appendix A
+# Appendix A - Cluster Role Configuration
 
 ## In case a data plane deployed twice or more on the same K8S cluster
 
-### Edit the following parameter "rbacClusterWide" in the environment section of the helmfile.yaml file
+### Edit the following parameter `rbacClusterWide` in the environment section of the helmfile.yaml file
 ```yaml
 environments:
   default:
@@ -159,10 +171,91 @@ environments:
     - rbacClusterWide: true
 ```
 
-### Update "telegraf" Cluster Role Binding with the additional namespace. Add the following to the "subjects" section. (edit namespace variable)
+### Update `telegraf` Cluster Role Binding with the additional namespace. Add the following to the `subjects` section. (edit namespace variable)
 ```yaml
 subjects:
   - kind: ServiceAccount
     name: telegraf
     namespace: superstream-new-namespace
+```
+
+# Appendix B - Non-HA Deployment
+
+## For testing purposes only Superstream can be deployed without HA capabilities
+
+### Change to `false` the following parameter `haDeployment` in the environment section of the helmfile.yaml file
+```yaml
+environments:
+  default:
+    values:
+    - ./environments/default.yaml
+    - haDeployment: false
+```
+
+# Appendix C - Superstream Update
+
+## Minor update
+
+### To update the Superstream Data Plane version, run the following steps.
+
+1. Retrieve the Most Recent Version of the Superstream Helm Chart
+
+```bash
+helm search repo superstream/superstream --versions | sort -r | head -n 1
+```
+
+2. Modify the `helmVersion` value in the `environments/default.yaml` file.
+
+3. To update your Helm releases in accordance with the state outlined in your `helmfile.yaml`, run the command below. This synchronizes your deployments to the latest configurations:
+   
+``` bash
+helmfile -e default apply
+``` 
+
+## Major update
+
+### The first step involves backing up your current `default.yaml` file. Following this, update your repository by pulling the latest changes from the master branch. Once updated, merge your backup values into the environments/default.yaml file. Continue with the process by following these instructions:
+
+1. Backup the `defualt.yaml` file:
+   
+```bash
+cp environments/default.yaml environments/default.yaml.bkp
+```
+
+2. Pull the latest updates from the repository master branch
+
+```bash
+git stash
+git pull
+```
+
+3. Edit the new version of the `default.yaml` file according to the previous backup.
+
+4. Check the Pending Changes:
+
+```bash
+helmfile -e default diff
+```
+
+5. Implement the updates to your Helm releases to match the latest helmfile.yaml configuration, ensuring your deployments are updated to the newest settings, by running:
+   
+``` bash
+helmfile -e default apply
+``` 
+
+# Appendix D - Uninstall
+
+## Steps to Uninstall Superstream Data Plane Deployment.
+
+1. Delete Superstream Data Plane Helm Releases:
+```bash
+helmfile -e default destroy
+```
+
+2. Remove Persistent Storage Bound to the Data Plane:
+
+It's crucial to delete the stateful storage linked to the data plane. Ensure you carefully specify the namespace in the command below before executing it:
+
+```bash
+kubectl delete pvc -l app.kubernetes.io/instance=nats -n <NAMESPACE>
 ```
