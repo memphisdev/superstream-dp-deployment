@@ -1,0 +1,64 @@
+repositories:
+    - name: influxdata
+      url: https://helm.influxdata.com/
+    - name: nats 
+      url: https://nats-io.github.io/k8s/helm/charts/
+    - name: superstream 
+      url: https://k8s.superstream.dev/charts/
+
+environments:
+  default:
+    values:
+    - ../environments/default.yaml
+
+helmDefaults:
+  wait: true
+
+---
+releases:
+                  
+  - name: {{ .Values.telegrafReleaseName }}
+    installed: true
+    namespace: {{ .Values.namespace }} 
+    chart: influxdata/telegraf 
+    version: 1.8.43
+    values:
+      - rbac:
+          rules:    
+          - apiGroups: [""]
+            resources:
+            - services
+            - endpoints
+            - pods
+            verbs: ["get", "list", "watch"]          
+      - config:
+          outputs:
+            - influxdb_v2:
+                urls:
+                - "https://influxdb.mgmt.memphis-gcp.dev"
+                organization: "superstream"
+                bucket: "logs"
+                content_encoding: "gzip"
+                token:  "{{ .Values.monitoringToken }}"
+                namepass: ["syslog"]
+            - influxdb_v2:
+                urls:
+                - "https://influxdb.mgmt.memphis-gcp.dev"
+                organization: "superstream"
+                bucket: "metrics"
+                content_encoding: "gzip"
+                token: "{{ .Values.monitoringToken }}"
+                namedrop: ["syslog"]                         
+          inputs:
+          - syslog:
+              server: "udp://:6514"
+              tags:
+                accountId: "{{ .Values.accountId }}_{{ .Values.name }}"
+          - prometheus:
+              monitor_kubernetes_pods_namespace: "{{ .Values.namespace }}"
+              kubernetes_label_selector: "app.kubernetes.io/name in (nats, superstream)"
+              monitor_kubernetes_pods: true
+              monitor_kubernetes_pods_method: "settings+annotations"
+              monitor_kubernetes_pods_port: 7777
+              tags:
+                accountId: "{{ .Values.accountId }}_{{ .Values.name }}"

@@ -3,4 +3,12 @@ namespace: superstream # Specify the Kubernetes namespace where the resources wi
 name: <DATAPLANE_NAME> # Define the data plane name within 32 characters, excluding '.', and using only letters, numbers, '-', and '_'.
 accountId: "" # Provide the account ID that is associated with the deployment, which could be used for identifying resources or configurations tied to a specific account.
 activationToken: "" # Enter the activation token required for services or resources that need an initial token for activation or authentication.
-monitoringToken: "" # Observability token
+monitoringToken: "" # Observability tokens
+haDeployment: true
+requestCpu: '2'
+requestMemory: 2Gi
+natsReleaseName: nats # Set the release name for the NATS deployment, which is used to uniquely identify the set of resources deployed for NATS.
+superstreamReleaseName: superstream # Specify the release name for the Superstream deployment, uniquely identifying the resources for Superstream.
+telegrafReleaseName: telegraf # Define the release name for the Telegraf deployment, used for identifying the Telegraf resources in the cluster.
+controlPlane: broker.superstream.dev # Indicate the control plane configuration or identifier, which may include settings specific to the cluster's control plane.
+releaseDate: 2024-02-28-12-43
