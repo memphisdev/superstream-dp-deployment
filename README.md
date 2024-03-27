@@ -157,7 +157,7 @@ To apply the Helmfile configurations and deploy your Kubernetes resources, follo
 2. Apply Helmfile:
 Run the following command to apply the Helmfile configuration. This will sync your Helm releases to match the state declared in your helmfile.yaml.
 ``` bash
-helmfile -e default apply
+helmfile -f helmfile.d/ -e default apply
 ```
 The `-e default` flag specifies the environment. You can adjust this according to your Helmfile's environment configurations.
 3. Verify Deployment:
@@ -197,7 +197,7 @@ environments:
 3. To update your Helm releases in accordance with the state outlined in your `helmfile.yaml`, run the command below. This synchronizes your deployments to the latest configurations:
    
 ``` bash
-helmfile -e default apply
+helmfile -f helmfile.d/ -e default apply
 ``` 
 
 ## Major update - X.1.X -> X.2.X
@@ -222,13 +222,13 @@ git pull
 4. Check the Pending Changes:
 
 ```bash
-helmfile -e default diff
+helmfile -f helmfile.d/ -e default diff
 ```
 
 5. Implement the updates to your Helm releases to match the latest helmfile.yaml configuration, ensuring your deployments are updated to the newest settings, by running:
    
 ``` bash
-helmfile -e default apply
+helmfile -f helmfile.d/ -e default apply
 ``` 
 
 # Appendix C - Uninstall
@@ -237,7 +237,7 @@ helmfile -e default apply
 
 1. Delete Superstream Data Plane Helm Releases:
 ```bash
-helmfile -e default destroy
+helmfile -f helmfile.d/ -e default destroy
 ```
 
 2. Remove Persistent Storage Bound to the Data Plane:
@@ -297,7 +297,7 @@ releases:
 3. Run the deployment
 
 ```bash
-helmfile -e default apply
+helmfile -f helmfile.d/ -e default apply
 ```
 
 ## Disable HPA - autoscalling ability of the Data Plane service
@@ -356,5 +356,5 @@ Example:
 3. Run the deployment
 
 ```bash
-helmfile -e default apply
+helmfile -f helmfile.d/ -e default apply
 ```
